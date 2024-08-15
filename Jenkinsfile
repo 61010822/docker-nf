@@ -16,9 +16,8 @@ pipeline {
             steps {
                 script {
                     def gitUrl = env.GIT_URL
-                    echo "${gitUrl}"
-                    // def userRepo = gitUrl.tokenize('/')[3..4].join('/').replace('.git', '')
-                    // echo "User/Repo: ${userRepo}"
+                    def userRepo = gitUrl.replaceAll(/https:\/\/[^\/]+\//, '').replace('.git', '')
+                    echo "User/Repo: ${userRepo}"
                 }
             }
         }
