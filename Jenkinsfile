@@ -122,17 +122,17 @@ pipeline {
         }
   
 
-        stage('Push image to Harbor') {
-            steps {
-                script {
-                    sh """
-                    docker push $env.scanned_image
-                    """
+        // stage('Push image to Harbor') {
+        //     steps {
+        //         script {
+        //             sh """
+        //             docker push $env.scanned_image
+        //             """
 
-                    }
-                }
-            }
-        }
+        //             }
+        //         }
+        //     }
+        // }
     
 
     post {
