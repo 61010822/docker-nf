@@ -26,11 +26,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
                         docker.image('bridgecrew/checkov:latest').inside("--entrypoint=''") {
-                            try {
-                                sh "checkov -d . --bc-api-key ${TL_USER}::${TL_PASS} --repo-id ${env.repo_name} --branch main --use-enforcement-rules"
-                            } catch (err) {
-                                echo "${err}"
-                            }
+                            sh "checkov -d . --bc-api-key ${TL_USER}::${TL_PASS} --repo-id ${env.repo_name} --branch main --use-enforcement-rules"
                         }
                     }
                 }
