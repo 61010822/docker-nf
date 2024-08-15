@@ -15,7 +15,7 @@ pipeline {
         stage('Extract Repository Name') {
             steps {
                 script {
-                    def repoName = gitUrl.tokenize('/')[3..4].join('/').replace('.git', '')
+                    def userRepo = env.GIT_URL.tokenize('/')[3..4].join('/').replace('.git', '')
                     echo "Repository Name: ${repoName}"
                 }
             }
