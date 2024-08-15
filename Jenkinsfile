@@ -18,7 +18,7 @@ pipeline {
                     def gitUrl = env.GIT_URL
                     def userRepo = gitUrl.replaceAll(/https:\/\/[^\/]+\//, '').replace('.git', '')
                     echo "User/Repo: ${userRepo}"
-                    env.repo_name = $userRepo
+                    env.repo_name = userRepo
                 }
             }
         }
