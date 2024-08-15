@@ -7,8 +7,7 @@ pipeline {
     environment {
         TAG_NAME = "$BUILD_NUMBER"
         prisma_console_url = "https://asia-southeast1.cloud.twistlock.com/aws-singapore-961149791"
-        prisma_access_id = "a826c107-8a9d-4dcf-870e-aeec33ca77a7"
-        prisma_access_secret = "wFKLd3VzpRmSoJ7ZLU5b419iJTs="
+        BASE_URL = "https://api.sg.prismacloud.io/"
     }
 
     stages {
@@ -108,14 +107,16 @@ pipeline {
         stage('Scan image with Prisma') {
             steps {
                 script {
-                    def command = """
-                    /apps/devsecops/prisma/twistcli images scan --address $env.prisma_console_url \
-                    -u $env.prisma_access_id \
-                    -p $env.prisma_access_secret \
-                    --details $env.scanned_image
-                    """ 
+                    withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
+                        def command = """
+                        /apps/devsecops/prisma/twistcli images scan --address $env.prisma_console_url \
+                        -u $TL_USER \
+                        -p $TL_PASS \
+                        --details $env.scanned_image
+                        """ 
 
-                    sh command
+                        sh command
+                    }
                 }
             }
         }
