@@ -1,0 +1,251 @@
+replicaCount: 2
+namespace: foobar
+
+descriptionLabel:
+  name: foobar
+  instance: foobar
+  projectGroup: foobar
+  imageDigest: foobar
+  gitCommit: foobar
+
+image:
+  repository: foobar
+  name: foobar
+  version: ${VERSION}
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8200
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 5
+  timeoutSeconds: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8200
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+nodeSelector:
+  role: apps
+
+########################################### Service ###########################################
+service:
+  type: ClusterIP
+  port: 8200
+  targetPort: 8200
+  protocol: TCP
+  name: foobar
+  annotations: {}
+
+######################################### ConfigMap ##########################################
+configmap:
+  enabled: false
+  mountPath: #/apps/config
+  propertyFiles:
+
+######################################### Ingress #############################################
+ingress:
+  enabled: false
+  annotations:
+  host: # foobar
+  TLSSecretName: # foobar
+  customPathConfigEnabled: false
+  customPathConfig:
+  # - path: /
+  #   backend:
+  #     serviceName: Your Helm release name on each service when run command helm upgrade --install
+  #     servicePort: 8080
+
+######################################### serviceAccount #######################################
+serviceAccount:
+  enabled: true
+  annotations:
+    eks.amazonaws.com/role-arn: foobar
+
+
+################################################################################################
+#
+# Optional Parameter
+#
+################################################################################################
+
+######################################### Deployment ###########################################
+env:
+  - name: hostname.pmkfe
+    value: foobar
+  - name: api.key
+    value: foobar
+  - name: api.secret
+    value: foobar
+  - name: pmkfe.key
+    value: foobar
+  - name: pmkfe.secret
+    value: foobar
+  - name: pod.ip
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: host.ip
+    valueFrom:
+      fieldRef:
+        fieldPath: status.hostIP
+  - name: node.name
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+  - name: web.version
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.labels['version']
+
+command: # ["/bin/sh"]
+args: # ["-c", "while true; do echo hello; sleep 10;done"]
+
+podAnnotations:
+# iam.amazonaws.com/role: arn:aws:iam::111111111111:role/YourIAMRole
+
+lifecycle:
+# postStart:
+#   exec:
+#     command: ["/bin/sh", "-c", "sleep 30s"]
+# preStop:
+#   exec:
+#     command: ["/bin/sh", "-c","sleep 30s"]
+
+initContainers:
+# - name: init-myservice
+#   image: foobar
+#   command: ['sh', '-c', 'until nslookup myservice; do echo waiting for myservice; sleep 2; done;']
+#   resources:
+#     limits:
+#       cpu: 50m
+#       memory: 64Mi
+#     requests:
+#       cpu: 50m
+#       memory: 64Mi
+
+startupProbe:
+# httpGet:
+#   path: /actuator/health
+#   port: 8080
+# initialDelaySeconds: 5
+# periodSeconds: 5
+# failureThreshold: 20
+# timeoutSeconds: 5
+
+### Interactive Application Security Testing e.g.seeker ###
+IAST:
+  enabled: false
+  image_version: foobar
+
+### Hashicorp Vault ###
+vaultCertificate:
+  enabled: false
+  image_version: foobar
+  keyStoreName: keystore.jks
+  trustStoreName: cacerts
+  storepass: changeit
+
+volumes:
+# - name: my-volume
+#   emptyDir: {}
+
+volumeMounts:
+# - name: my-volume
+#   mountPath: /data
+
+affinity:
+  customConfigEnabled: false
+  customConfig:
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #     - labelSelector:
+  #         matchExpressions:
+  #         - key: "key1"
+  #           operator: In
+  #           values:
+  #           - "value1"
+  #       topologyKey: "kubernetes.io/hostname"
+
+strategy:
+# type: RollingUpdate
+# rollingUpdate:
+#   maxUnavailable: 25%
+#   maxSurge: 1
+
+terminationGracePeriodSeconds: # 30
+
+securityContext:
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+# allowPrivilegeEscalation: false
+
+######################################### Role #########################################
+role:
+  enabled: false
+  rules:
+  # - apiGroups: ['']
+  #   resources: ['services','pods','endpoints']
+  #   verbs: ['get', 'list','watch']
+
+######################################### PersistentVolumeClaim #########################################
+PersistentVolumeClaim:
+  enabled: false
+  mountPath: # /apps/mydata
+  spec:
+  # accessModes:
+  #   - ReadWriteOnce
+  # volumeMode: Filesystem
+  # resources:
+  #   requests:
+  #     storage: 8Gi
+  # storageClassName: slow
+  # selector:
+  #   matchLabels:
+  #     release: "stable"
+  #   matchExpressions:
+  #     - {key: environment, operator: In, values: [dev]}
+
+######################################### Horizontal Pod Autoscaler #########################################
+hpa:
+  enabled: false
+  maxReplicas: # 10
+  minReplicas: # 2
+  metrics:
+  # - type: Resource
+  #   resource:
+  #     name: cpu
+  #     target:
+  #       type: Utilization
+  #       averageUtilization: 90
+  # - type: Resource
+  #   resource:
+  #     name: memory
+  #     target:
+  #       type: Utilization
+  #       averageUtilization: 90
+
+######################################### PodDisruptionBudget #########################################
+pdb:
+  enabled: false
+  spec:
+  # maxUnavailable: 1
+  # minAvailable: 1
