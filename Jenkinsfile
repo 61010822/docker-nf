@@ -104,33 +104,33 @@ pipeline {
         //     }
         // }
 
-        // stage('Build Docker image') {
-        //     steps {
-        //         script {
-        //             sh """
-        //                 docker build --no-cache -t $params.IMAGE_NAME:$env.TAG_NAME .
-        //             """
-        //                 env.scanned_image = "$params.IMAGE_NAME:$env.TAG_NAME"
-        //         }
-        //     }
-        // }
+        stage('Build Docker image') {
+            steps {
+                script {
+                    sh """
+                        docker build --no-cache -t $params.IMAGE_NAME:$env.TAG_NAME .
+                    """
+                        env.scanned_image = "$params.IMAGE_NAME:$env.TAG_NAME"
+                }
+            }
+        }
 
-        // stage('Scan image with Prisma') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
-        //                 def command = """
-        //                 /apps/devsecops/prisma/twistcli images scan --address $env.PRISMA_CONSOLE_URL \
-        //                 -u $TL_USER \
-        //                 -p $TL_PASS \
-        //                 --details $env.scanned_image
-        //                 """ 
+        stage('Scan image with Prisma') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
+                        def command = """
+                        /apps/devsecops/prisma/twistcli images scan --address $env.PRISMA_CONSOLE_URL \
+                        -u $TL_USER \
+                        -p $TL_PASS \
+                        --details $env.scanned_image
+                        """ 
 
-        //                 sh command
-        //             }
-        //         }
-        //     }
-        // }
+                        sh command
+                    }
+                }
+            }
+        }
   
 
         // stage('Push image to Harbor') {
@@ -149,7 +149,7 @@ pipeline {
     post {
         always {
             deleteDir()
-            // sh "docker rmi $env.scanned_image"
+            sh "docker rmi $env.scanned_image"
         }
     }
 }
