@@ -11,145 +11,110 @@ pipeline {
     }
 
     stages {
-        stage('Extract Repository Name') {
-            steps {
-                script {
-                    def gitUrl = env.GIT_URL
-                    def userRepo = gitUrl.replaceAll(/https:\/\/[^\/]+\//, '').replace('.git', '')
-                    echo "User/Repo: ${userRepo}"
-                    env.repo_name = userRepo
-                }
-            }
-        }
-        stage('Scan SCA with Prisma') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
-                        docker.image('bridgecrew/checkov:latest').inside("--entrypoint=''") {
-                            sh "checkov -d . --bc-api-key ${TL_USER}::${TL_PASS} --repo-id ${env.repo_name} --branch main --use-enforcement-rules"
-                        }
-                    }
-                }
-            }
-        }
-        // stage('Authentication') {
+        // stage('Extract Repository Name') {
         //     steps {
         //         script {
-        //             authenticate = {
-        //                 withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
-        //                     def response = sh(
-        //                         script: """curl -s -w '%{http_code}' -L -X POST '${PRISMA_API_URL}login' \
-        //                             -H 'Content-Type: application/json' \
-        //                             -H 'Accept: application/json' \
-        //                             --data-raw '{
-        //                             "username": "${TL_USER}", 
-        //                             "password": "${TL_PASS}"
-        //                             }'""",
-        //                         returnStdout: true
-        //                     ).trim()
-
-        //                     def statusCode = response.substring(response.length() - 3) 
-        //                     def responseBody = response.substring(0, response.length() - 3)
-
-        //                     if (statusCode == '200') {
-        //                         echo "Authentication successfully"
-        //                         def jsonResponse = readJSON text: responseBody
-        //                         def token = jsonResponse.token
-        //                         env.TOKEN = token
-        //                     } else {
-        //                         error "Failed to Authenticatio to Prisma Cloud. status: ${statusCode}"
+        //             def gitUrl = env.GIT_URL
+        //             def userRepo = gitUrl.replaceAll(/https:\/\/[^\/]+\//, '').replace('.git', '')
+        //             echo "User/Repo: ${userRepo}"
+        //             env.repo_name = userRepo
+        //         }
+        //     }
+        // }
+        // stage('Scan SCA with Prisma') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
+        //                 docker.image('bridgecrew/checkov:latest').inside("--entrypoint=''") {
+        //                     try {
+        //                         sh """
+        //                             checkov -d . --bc-api-key ${TL_USER}::${TL_PASS} --repo-id ${env.repo_name} --branch main --use-enforcement-rules
+        //                         """
+        //                         echo "Checkov scan passed without violations."
+        //                     } catch (Exception e) {
+        //                         echo "Checkov scan failed due to enforcement rule violations."
+        //                         error("Build failed due to Checkov enforcement rule violations.")
         //                     }
-        
-                            
         //                 }
         //             }
         //         }
         //     }
         // }
 
-        // stage('Add Repositories') {
+        // stage('Build Docker image') {
         //     steps {
         //         script {
-        //             authenticate()
-        //             def token = env.TOKEN
-                    
-        //             if (!token) {
-        //                 error 'No authentication token available.'
-        //             }
-                    
-        //             def response = sh(
-        //                 script: """curl -w '%{http_code}' -L -X POST '${PRISMA_API_URL}code/api/v1/repositories' \
-        //                     -H 'Content-Type: application/json' \
-        //                     -H 'Accept: application/json' \
-        //                     -H 'Authorization: Bearer $token' \
-        //                     --data-raw '{ 
-        //                     "type": "github",
-        //                     "data": ["$env.repo_name"]
-        //                     }'""",
-        //                 returnStdout: true
-        //             ).trim()
-
-        //             def statusCode = response.substring(response.length() - 3) 
-        //             def responseBody = response.substring(0, response.length() - 3)
-
-
-        //             if (statusCode == '200') {
-        //                 echo "Successfully Add Repository"
-
-        //             } else {
-        //                 error "Failed to Add Repository to Prisma Cloud. status: ${statusCode}"
-        //             }
-                
+        //             sh """
+        //                 docker build --no-cache -t $params.IMAGE_NAME:$env.TAG_NAME .
+        //             """
+        //                 env.scanned_image = "$params.IMAGE_NAME:$env.TAG_NAME"
         //         }
         //     }
         // }
 
-        stage('Build Docker image') {
-            steps {
-                script {
-                    sh """
-                        docker build --no-cache -t $params.IMAGE_NAME:$env.TAG_NAME .
-                    """
-                        env.scanned_image = "$params.IMAGE_NAME:$env.TAG_NAME"
-                }
-            }
-        }
+        // stage('Scan image with Prisma') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
+        //                 def command = """
+        //                 /apps/devsecops/prisma/twistcli images scan --address $env.PRISMA_CONSOLE_URL \
+        //                 -u $TL_USER \
+        //                 -p $TL_PASS \
+        //                 --details $env.scanned_image
+        //                 """ 
 
-        stage('Scan image with Prisma') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'prisma-pink', passwordVariable: 'TL_PASS', usernameVariable: 'TL_USER')]) {
-                        def command = """
-                        /apps/devsecops/prisma/twistcli images scan --address $env.PRISMA_CONSOLE_URL \
-                        -u $TL_USER \
-                        -p $TL_PASS \
-                        --details $env.scanned_image
-                        """ 
-
-                        sh command
-                    }
-                }
-            }
-        }
+        //                 sh command
+        //             }
+        //         }
+        //     }
+        // }
   
 
         // stage('Push image to Harbor') {
         //     steps {
         //         script {
+        //             def imageName = "hubdc.dso.local/${env.scanned_image}"
+            
         //             sh """
-        //             docker push $env.scanned_image
+        //                 docker tag ${env.scanned_image} ${imageName}
+        //                 docker push ${imageName}
         //             """
 
-        //             }
         //         }
         //     }
+        // }
+
+        stage('Deploy Workload to Openshift Cluster') {
+            steps {
+                script {     
+                    withCredentials([file(credentialsId: 'OCP_LAB', variable: 'KUBECONFIG_FILE')]) {
+                        sh """
+                            export KUBECONFIG=$KUBECONFIG_FILE
+                            
+                            # Verify connection
+                            oc whoami
+                            
+                            # Set the OpenShift project
+                            # oc project my-namespace
+                            
+                            # Deploy the image
+                            # oc set image deployment/my-deployment my-container=hubdc.dso.local/${env.scanned_image} --record
+                            
+                            # Ensure the rollout succeeds
+                            # oc rollout status deployment/my-deployment
+                        """
+                    }
+
+                }
+            }
+        }
     }
     
 
     post {
         always {
             deleteDir()
-            sh "docker rmi $env.scanned_image"
+            sh "docker rmi $env.scanned_image || true" 
         }
     }
 }
